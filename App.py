@@ -1,17 +1,10 @@
 import streamlit as st
-import joblib
+from joblib import load
 import pandas as pd
 import os
 
 # =========================
-# Load Model Safely
-# =========================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "desics.pkl")
-model = joblib.load(MODEL_PATH)
-
-# =========================
-# Page Config
+# Page Config (MUST be first Streamlit command)
 # =========================
 st.set_page_config(
     page_title="Heart Disease Prediction",
@@ -19,11 +12,26 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("❤️ Heart Disease Prediction App")
-st.write("Enter Patient Details to Predict 10-Year Heart Disease Risk")
+# =========================
+# Load Model Safely
+# =========================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "desics.pkl")
+
+@st.cache_resource
+def load_model():
+    return load(MODEL_PATH)
+
+model = load_model()
 
 # =========================
-# Input Section (Two Columns)
+# App Title
+# =========================
+st.title("❤️ Heart Disease Prediction App")
+st.write("Enter patient details to predict 10-year heart disease risk")
+
+# =========================
+# Input Section
 # =========================
 st.subheader("📥 Patient Details")
 
@@ -50,19 +58,20 @@ with col2:
 # =========================
 # Create Input DataFrame
 # =========================
-input_data = pd.DataFrame([[
-    male, age, currentSmoker, cigsPerDay, BPMeds, prevalentStroke, prevalentHyp,
-    diabetes, totChol, sysBP, diaBP, BMI, heartRate, glucose
-]], columns=[
-    'male', 'age', 'currentSmoker', 'cigsPerDay', 'BPMeds', 'prevalentStroke',
-    'prevalentHyp', 'diabetes', 'totChol', 'sysBP', 'diaBP', 'BMI', 'heartRate', 'glucose'
-])
+input_data = pd.DataFrame(
+    [[
+        male, age, currentSmoker, cigsPerDay, BPMeds,
+        prevalentStroke, prevalentHyp, diabetes, totChol,
+        sysBP, diaBP, BMI, heartRate, glucose
+    ]],
+    columns=[
+        "male", "age", "currentSmoker", "cigsPerDay", "BPMeds",
+        "prevalentStroke", "prevalentHyp", "diabetes", "totChol",
+        "sysBP", "diaBP", "BMI", "heartRate", "glucose"
+    ]
+)
 
-# =========================
-# Ensure No NaN Values
-# =========================
 input_data = input_data.astype(float)
-input_data.fillna(0, inplace=True)
 
 # =========================
 # Prediction
@@ -76,10 +85,10 @@ if st.button("🚀 Predict Risk"):
     else:
         st.success("✅ Low Risk of Heart Disease")
 
-    st.write(f"📊 Risk Probability: {probability[0][1]*100:.2f}%")
+    st.write(f"📊 Risk Probability: **{probability[0][1] * 100:.2f}%**")
 
 # =========================
 # Footer
 # =========================
 st.markdown("---")
-st.markdown("Developed by Arun | Heart Disease ML Predictor")
+st.markdown("Developed by **Arun** | Heart Disease ML Predictor")
